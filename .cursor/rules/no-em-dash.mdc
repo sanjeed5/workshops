@@ -1,0 +1,5 @@
+---
+globs: *.md
+alwaysApply: false
+---
+Never use em-dash. 

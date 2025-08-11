@@ -1,0 +1,32 @@
+/* Custom CSS for Slidev code block wrapping */
+
+/* Enable line wrapping in code blocks */
+pre {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Ensure code within pre tags also wraps */
+pre code {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* For inline code elements */
+code {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Prevent horizontal overflow */
+.slidev-layout {
+  overflow-x: hidden;
+}
+
+/* Make sure code blocks don't extend beyond slide boundaries */
+.slidev-code {
+  max-width: 100% !important;
+  overflow-x: auto;
+}
