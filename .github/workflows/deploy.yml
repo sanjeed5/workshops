@@ -1,0 +1,89 @@
+name: Deploy pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Install dependencies
+        working-directory: mvp-building
+        run: pnpm install --frozen-lockfile
+
+      - name: Build both decks with base path
+        working-directory: mvp-building
+        run: pnpm build -- --base /${{ github.event.repository.name }}/
+
+      - name: Create index.html linking to both decks
+        working-directory: mvp-building/dist
+        run: |
+          cat > index.html << 'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>MVP Building Slides</title>
+            <style>
+              body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; padding: 2rem; line-height: 1.6; }
+              h1 { font-size: 1.75rem; margin-bottom: 1rem; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 0.5rem 0; }
+              a { text-decoration: none; color: #2563eb; }
+              a:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>MVP Building Slides</h1>
+            <ul>
+              <li><a href="./01_mvp_planning/">01 · Plan Your MVP</a></li>
+              <li><a href="./02_mvp_building/">02 · Build Your MVP with Cursor</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: mvp-building/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+
