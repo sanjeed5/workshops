@@ -48,34 +48,9 @@ jobs:
           sed -i 's/href="\\/1"/href=".\\/1"/g' dist/01_mvp_planning/404.html || true
           sed -i 's/href="\\/1"/href=".\\/1"/g' dist/02_mvp_building/404.html || true
 
-      - name: Create index.html linking to both decks
-        working-directory: mvp-building/dist
+      - name: Copy static index.html into dist
         run: |
-          cat > index.html << 'EOF'
-          <!doctype html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>MVP Building Slides</title>
-            <style>
-              body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; padding: 2rem; line-height: 1.6; }
-              h1 { font-size: 1.75rem; margin-bottom: 1rem; }
-              ul { list-style: none; padding: 0; }
-              li { margin: 0.5rem 0; }
-              a { text-decoration: none; color: #2563eb; }
-              a:hover { text-decoration: underline; }
-            </style>
-          </head>
-          <body>
-            <h1>MVP Building Slides</h1>
-            <ul>
-              <li><a href="./01_mvp_planning/">01 · Plan Your MVP</a></li>
-              <li><a href="./02_mvp_building/">02 · Build Your MVP with Cursor</a></li>
-            </ul>
-          </body>
-          </html>
-          EOF
+          cp mvp-building/index.html mvp-building/dist/index.html
 
       - name: Create root 404.html for GH Pages SPA fallback
         working-directory: mvp-building/dist
