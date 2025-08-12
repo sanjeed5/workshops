@@ -14,5 +14,10 @@ export default {
   // Ensure proper rendering of code blocks
   markdown: {
     codeTransformers: []
+  },
+
+  // Force relative asset paths for GitHub Pages subpath deployments
+  vite: {
+    base: './',
   }
 }
