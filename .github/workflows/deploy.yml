@@ -77,6 +77,36 @@ jobs:
           </html>
           EOF
 
+      - name: Create root 404.html for GH Pages SPA fallback
+        working-directory: mvp-building/dist
+        run: |
+          cat > 404.html << 'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Redirecting…</title>
+          </head>
+          <body>
+            <script>
+            (function () {
+              var repo = '/${{ github.event.repository.name }}/';
+              var path = location.pathname;
+              if (!path.startsWith(repo)) { location.replace(repo); return; }
+              var rest = path.slice(repo.length);
+              var deck = rest.split('/')[0];
+              if (deck === '01_mvp_planning' || deck === '02_mvp_building') {
+                location.replace(repo + deck + '/');
+              } else {
+                location.replace(repo);
+              }
+            })();
+            </script>
+          </body>
+          </html>
+          EOF
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
