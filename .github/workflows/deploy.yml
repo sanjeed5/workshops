@@ -34,9 +34,9 @@ jobs:
         working-directory: mvp-building
         run: pnpm install --frozen-lockfile
 
-      - name: Build both decks with relative base (fix GH Pages assets)
+      - name: Build both decks
         working-directory: mvp-building
-        run: pnpm build -- --base ./
+        run: pnpm build
 
       - name: Create index.html linking to both decks
         working-directory: mvp-building/dist
