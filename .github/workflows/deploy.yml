@@ -34,15 +34,19 @@ jobs:
         working-directory: mvp-building
         run: pnpm install --frozen-lockfile
 
-      - name: Build each deck with explicit base and out
+      - name: Build each deck with relative base and out
         working-directory: mvp-building
         run: |
           pnpm exec slidev build 01_mvp_planning.md \
-            --base /${{ github.event.repository.name }}/01_mvp_planning/ \
+            --base ./ \
             --out dist/01_mvp_planning
           pnpm exec slidev build 02_mvp_building.md \
-            --base /${{ github.event.repository.name }}/02_mvp_building/ \
+            --base ./ \
             --out dist/02_mvp_building
+
+          # Ensure 404 fallback button uses a relative link instead of absolute /1
+          sed -i 's/href="\\/1"/href=".\\/1"/g' dist/01_mvp_planning/404.html || true
+          sed -i 's/href="\\/1"/href=".\\/1"/g' dist/02_mvp_building/404.html || true
 
       - name: Create index.html linking to both decks
         working-directory: mvp-building/dist
