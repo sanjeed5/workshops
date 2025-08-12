@@ -34,9 +34,15 @@ jobs:
         working-directory: mvp-building
         run: pnpm install --frozen-lockfile
 
-      - name: Build both decks
+      - name: Build each deck with explicit base and out
         working-directory: mvp-building
-        run: pnpm build
+        run: |
+          pnpm exec slidev build 01_mvp_planning.md \
+            --base /${{ github.event.repository.name }}/01_mvp_planning/ \
+            --out dist/01_mvp_planning
+          pnpm exec slidev build 02_mvp_building.md \
+            --base /${{ github.event.repository.name }}/02_mvp_building/ \
+            --out dist/02_mvp_building
 
       - name: Create index.html linking to both decks
         working-directory: mvp-building/dist
