@@ -48,9 +48,7 @@ jobs:
           sed -i 's/href="\\/1"/href=".\\/1"/g' dist/01_mvp_planning/404.html || true
           sed -i 's/href="\\/1"/href=".\\/1"/g' dist/02_mvp_building/404.html || true
 
-      - name: Copy static index.html into dist
-        run: |
-          cp mvp-building/index.html mvp-building/dist/index.html
+      # No root index.html needed; each deck is accessed directly
 
       - name: Create root 404.html for GH Pages SPA fallback
         working-directory: mvp-building/dist
