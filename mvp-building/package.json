@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "slidev build",
+    "build": "slidev build 01_mvp_planning.md 02_mvp_building.md",
     "dev": "slidev --open",
     "export": "slidev export"
   },
