@@ -1,0 +1,190 @@
+## Slidev deploy guide for GitHub Pages
+
+This repo hosts multiple Slidev decks as separate SPAs under a single GitHub project site. Each deck builds to its own folder and is served at:
+
+- `https://<username>.github.io/<repository>/<deck-name>/`
+- For this repo (`sanjeed5/workshops`):
+  - `https://sanjeed5.github.io/workshops/01_mvp_planning/`
+  - `https://sanjeed5.github.io/workshops/02_mvp_building/`
+
+This guide shows how to add a new `*.md` deck, build correctly for GitHub Pages, and preserve deep links like `/presenter`, `/overview`, and `/print`.
+
+### Requirements
+
+- GitHub Pages set to use GitHub Actions in repo Settings.
+- Node LTS and pnpm in the workflow.
+- Deck markdown files live in `mvp-building/`.
+- Vite base path must be set for subfolder deployment. See the Vite docs: [Public Base Path](https://vite.dev/guide/build.html#public-base-path).
+
+### Local development
+
+- Install and run:
+
+```bash
+pnpm -C mvp-building install
+pnpm -C mvp-building dev
+```
+
+- Or open a specific deck:
+
+```bash
+npx -C mvp-building slidev 01_mvp_planning.md
+npx -C mvp-building slidev 02_mvp_building.md
+```
+
+### Local build preview only
+
+The local build script uses a relative base for preview:
+
+```json
+{
+  "scripts": {
+    "build": "rm -rf dist && slidev build 01_mvp_planning.md --base ./ --out dist/01_mvp_planning && slidev build 02_mvp_building.md --base ./ --out dist/02_mvp_building"
+  }
+}
+```
+
+This output is for local preview only. Do not deploy it to GitHub Pages because its base is relative. The Pages workflow builds with an absolute base.
+
+### Deploy via GitHub Actions (already set up)
+
+The workflow `.github/workflows/deploy.yml` installs dependencies, builds each deck to `mvp-building/dist/<deck>`, and deploys that directory to Pages. It uses an absolute base of `/<repository>/<deck>/` so assets resolve correctly on Pages.
+
+Key pattern for each deck build:
+
+```bash
+pnpm exec slidev build <deck>.md \
+  --base /${{ github.event.repository.name }}/<deck-folder>/ \
+  --out dist/<deck-folder>
+```
+
+Example for the existing two decks:
+
+```bash
+pnpm exec slidev build 01_mvp_planning.md \
+  --base /${{ github.event.repository.name }}/01_mvp_planning/ \
+  --out dist/01_mvp_planning
+pnpm exec slidev build 02_mvp_building.md \
+  --base /${{ github.event.repository.name }}/02_mvp_building/ \
+  --out dist/02_mvp_building
+```
+
+Explicit example using literal base for this repo (equivalent):
+
+```bash
+pnpm exec slidev build 01_mvp_planning.md \
+  --base /workshops/01_mvp_planning/ \
+  --out dist/01_mvp_planning
+pnpm exec slidev build 02_mvp_building.md \
+  --base /workshops/02_mvp_building/ \
+  --out dist/02_mvp_building
+```
+
+### Adding a new deck
+
+1) Create a new markdown deck in `mvp-building/`, for example `03_new_topic.md`.
+
+2) Update the workflow build step to add a command for the new deck with the absolute base and output folder:
+
+```yaml
+- name: Build each deck with absolute base and out
+  working-directory: mvp-building
+  run: |
+    pnpm exec slidev build 03_new_topic.md \
+      --base /${{ github.event.repository.name }}/03_new_topic/ \
+      --out dist/03_new_topic
+```
+
+3) Ensure deep links work from direct URLs on Pages by keeping a `404.html` fallback that preserves the path after the deck name. This allows URLs like `/presenter`, `/overview`, and `/print` to resolve correctly after refresh:
+
+```html
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redirecting…</title>
+<body>
+<script>
+(function () {
+  var repo = '/${{ github.event.repository.name }}/';
+  var full = location.pathname + location.search + location.hash;
+  if (!full.startsWith(repo)) { location.replace(repo); return; }
+  var rest = full.slice(repo.length);
+  if (!rest) { location.replace(repo); return; }
+  var deck = rest.split('/')[0];
+  var afterDeck = rest.slice(deck.length);
+  var target = repo + deck + (afterDeck.startsWith('/') ? afterDeck : '/' + afterDeck);
+  location.replace(target);
+})();
+</script>
+</body>
+</html>
+```
+
+Add or update a step in the workflow that writes this `404.html` into `mvp-building/dist/` before upload.
+
+4) Optional: Create a simple landing page that links to all deck folders. You can either hardcode known decks or generate links from the `dist` directory.
+
+Hardcoded example:
+
+```html
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workshops Slides</title>
+<body>
+  <h1>Workshops Slides</h1>
+  <ul>
+    <li><a href="./01_mvp_planning/">01_mvp_planning</a></li>
+    <li><a href="./02_mvp_building/">02_mvp_building</a></li>
+    <li><a href="./03_new_topic/">03_new_topic</a></li>
+  </ul>
+</body>
+</html>
+```
+
+Add or update a step in the workflow that writes this `index.html` into `mvp-building/dist/` before upload.
+
+### URLs
+
+- Deck 1: `https://<username>.github.io/<repository>/01_mvp_planning/`
+- Deck 2: `https://<username>.github.io/<repository>/02_mvp_building/`
+- New deck pattern: `https://<username>.github.io/<repository>/<deck-folder>/`
+
+Presenter view, overview, and print follow the same pattern, for example:
+
+- `https://<username>.github.io/<repository>/<deck-folder>/presenter/`
+- `https://<username>.github.io/<repository>/<deck-folder>/overview/`
+- `https://<username>.github.io/<repository>/<deck-folder>/print/`
+
+For this repo (`sanjeed5/workshops`):
+
+- Decks
+  - `https://sanjeed5.github.io/workshops/01_mvp_planning/`
+  - `https://sanjeed5.github.io/workshops/02_mvp_building/`
+- Presenter
+  - `https://sanjeed5.github.io/workshops/01_mvp_planning/presenter/`
+  - `https://sanjeed5.github.io/workshops/02_mvp_building/presenter/`
+- Overview
+  - `https://sanjeed5.github.io/workshops/01_mvp_planning/overview/`
+  - `https://sanjeed5.github.io/workshops/02_mvp_building/overview/`
+- Print
+  - `https://sanjeed5.github.io/workshops/01_mvp_planning/print/`
+  - `https://sanjeed5.github.io/workshops/02_mvp_building/print/`
+
+### Troubleshooting
+
+- If assets 404 on Pages, check the base flag. It must be `/<repository>/<deck>/` as an absolute path.
+- If direct links like `/presenter` fail on refresh, ensure the `404.html` fallback preserves the path after the deck.
+- If the root URL returns a 404, add an `index.html` to `mvp-building/dist/` with links to deck folders.
+- If you switch to a custom domain for the repo, you likely need to change the base to `/` in the workflow.
+- Avoid absolute links in markdown that start with `/...` because they target the domain root. Prefer relative links or build URLs off `import.meta.env.BASE_URL` inside code when needed.
+
+### Quick checklist for a new deck
+
+- [ ] Add `mvp-building/03_new_topic.md` (or your deck name).
+- [ ] Add a build command in the workflow using `--base /${{ github.event.repository.name }}/<deck>/` and `--out dist/<deck>`.
+- [ ] Ensure `404.html` fallback exists and preserves the path.
+- [ ] Optionally add the deck link to the generated `index.html`.
+- [ ] Commit to `main` and wait for the Pages workflow to finish.
+
